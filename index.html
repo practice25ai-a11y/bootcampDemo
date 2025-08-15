@@ -1,0 +1,643 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Button,
+} from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Switch } from "@/components/ui/switch";
+import { Check, ChevronRight, CircleDollarSign, Cpu, Layers, MessageSquare, Mic, Rocket, Shield, Sparkles, Workflow, ExternalLink, Mail, Phone, Calendar, ArrowRight, LineChart, Gauge, Send, Stars } from "lucide-react";
+
+/**
+ * Premium single-file website for an AI Agency
+ * - TailwindCSS
+ * - shadcn/ui components
+ * - Lucide icons
+ * - Framer Motion animations
+ *
+ * Notes:
+ * - Replace placeholder copy, logos, and links with your own.
+ * - This file is intentionally self-contained so it can be previewed instantly.
+ */
+
+const NAV = [
+  { id: "home", label: "Home" },
+  { id: "solutions", label: "Solutions" },
+  { id: "case-studies", label: "Case Studies" },
+  { id: "process", label: "Process" },
+  { id: "pricing", label: "Pricing" },
+  { id: "insights", label: "Insights" },
+  { id: "about", label: "About" },
+  { id: "contact", label: "Contact" },
+];
+
+const SERVICES = [
+  { icon: Cpu, title: "AI Systems", desc: "End-to-end intelligent systems that learn, reason, and automate at scale.", points: ["Model selection & fine-tuning", "RAG & agents", "Observability & evals"] },
+  { icon: Layers, title: "Full‑Stack Applications", desc: "Production-grade apps with beautiful UX and secure, scalable backends.", points: ["Next.js / React", "Edge & serverless", "CI/CD & QA"] },
+  { icon: MessageSquare, title: "AI Chatbots", desc: "Enterprise chat with guardrails, memory, and knowledge integrations.", points: ["Multi-turn orchestration", "KB sync & vectors", "Hallucination control"] },
+  { icon: Mic, title: "Voice Assistants", desc: "Real-time voice agents for support, sales, and ops with ultra-low latency.", points: ["Streaming ASR/TTS", "Tool use", "Telephony/RTC"] },
+  { icon: Workflow, title: "Workflow Automations", desc: "Automate back-office and ops with safe, auditable AI workflows.", points: ["Human-in-the-loop", "SLAs & retries", "Audit trails"] },
+  { icon: Sparkles, title: "AI Consulting", desc: "Strategy, roadmaps, and capability building for winning AI adoption.", points: ["Use-case ROI", "Data readiness", "Change management"] },
+];
+
+const METRICS = [
+  { kpi: "↓ 62%", label: "Handle Time" },
+  { kpi: "↑ 37%", label: "CSAT" },
+  { kpi: "↑ 24%", label: "Conversion" },
+  { kpi: "− 48%", label: "Ops Cost" },
+];
+
+const CASES = [
+  {
+    industry: "E‑commerce",
+    title: "AI Support Copilot",
+    impact: ["−52% email backlog", "+31% NPS"],
+    stack: ["RAG", "LLM Orchestration", "Zendesk", "Pinecone"],
+  },
+  {
+    industry: "Fintech",
+    title: "KYC Voice Assistant",
+    impact: ["3m → 48s verification", "99.2% accuracy"],
+    stack: ["Realtime ASR/TTS", "Serverless", "Twilio"],
+  },
+  {
+    industry: "SaaS",
+    title: "Sales Demo Agent",
+    impact: ["+22% win rate", "+18% pipeline"],
+    stack: ["Agents", "Dashboards", "HubSpot"],
+  },
+];
+
+const FAQ = [
+  { q: "How do you ensure privacy & security?", a: "We isolate data per tenant, apply least‑privilege access, encrypt in transit/at rest, and support SOC2/ISO27001‑aligned controls with audit trails and optional on‑prem/vector isolation." },
+  { q: "Which models & clouds do you support?", a: "OpenAI, Azure OpenAI, Anthropic, Google, open‑weights; clouds include AWS, Azure, GCP. We’re model‑agnostic and benchmark for your constraints (cost, latency, eval scores)." },
+  { q: "How do you measure ROI?", a: "We define baselines up front (AHT, CSAT, resolution rate, revenue uplift), run A/Bs, and instrument analytics and evals to quantify impact." },
+  { q: "Typical timeline?", a: "Discovery 1–2 wks, Design 1–2 wks, Build 4–8 wks, Integrate 1–2 wks, Scale ongoing. Complex enterprise rollouts vary by compliance and data readiness." },
+];
+
+const PACKAGES = [
+  {
+    name: "Starter",
+    price: "$15k+",
+    bullets: ["1 core use‑case", "Guardrails & evals", "Analytics dashboard", "2‑week pilot"],
+    cta: "Start Pilot",
+  },
+  {
+    name: "Growth",
+    price: "$45k+",
+    featured: true,
+    bullets: ["2–3 use‑cases", "RAG/agents", "Observability", "SLAs & training"],
+    cta: "Book Scope Call",
+  },
+  {
+    name: "Enterprise",
+    price: "$120k+",
+    bullets: ["SSO / SAML", "PII controls", "MLOps & CI/CD", "Change management"],
+    cta: "Talk to Sales",
+  },
+  {
+    name: "Advisory",
+    price: "$8k/mo",
+    bullets: ["Fractional AI Lead", "Roadmaps", "Architecture reviews", "Vendor due‑diligence"],
+    cta: "Engage Advisory",
+  },
+];
+
+const BLOG = [
+  { title: "Choosing the Right LLM for Regulated Workloads", tag: "Architecture", time: "8 min", href: "#" },
+  { title: "Beyond Chat: Designing Task‑First AI Interfaces", tag: "Product", time: "6 min", href: "#" },
+  { title: "RAG That Actually Works: Data, Evals, Guardrails", tag: "Engineering", time: "9 min", href: "#" },
+];
+
+function useDarkMode() {
+  const [enabled, setEnabled] = useState(false);
+  useEffect(() => {
+    const saved = localStorage.getItem("aa.dark");
+    if (saved === "true") setEnabled(true);
+  }, []);
+  useEffect(() => {
+    if (enabled) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    localStorage.setItem("aa.dark", String(enabled));
+  }, [enabled]);
+  return { enabled, setEnabled } as const;
+}
+
+function Glass({ children, className = "" }) {
+  return (
+    <div className={`backdrop-blur-xl bg-white/60 dark:bg-white/5 border border-white/40 dark:border-white/10 shadow-xl rounded-2xl ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+function Section({ id, className = "", children }) {
+  return (
+    <section id={id} className={`scroll-mt-24 py-20 md:py-28 ${className}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">{children}</div>
+    </section>
+  );
+}
+
+function Stat({ kpi, label }) {
+  return (
+    <div className="text-center">
+      <div className="text-3xl md:text-4xl font-semibold tracking-tight">{kpi}</div>
+      <div className="text-sm opacity-70 mt-1">{label}</div>
+    </div>
+  );
+}
+
+function Header({ onContactClick }) {
+  const { enabled, setEnabled } = useDarkMode();
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="fixed top-0 inset-x-0 z-50">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
+        <Glass className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-rose-500" />
+            <div className="font-semibold tracking-tight text-lg">NovaMind AI</div>
+            <Badge variant="outline" className="hidden md:inline-flex">Enterprise</Badge>
+          </div>
+          <div className="hidden md:flex items-center gap-6">
+            {NAV.map((n) => (
+              <a key={n.id} href={`#${n.id}`} className="text-sm hover:opacity-80 transition-opacity">
+                {n.label}
+              </a>
+            ))}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-xs">
+                <span>Dark</span>
+                <Switch checked={enabled} onCheckedChange={setEnabled} />
+              </div>
+              <Button onClick={onContactClick} className="rounded-2xl">
+                Book a Call <Calendar className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <Button variant="outline" className="md:hidden" onClick={() => setOpen((v) => !v)}>
+            Menu
+          </Button>
+        </Glass>
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="md:hidden mt-2"
+            >
+              <Glass className="px-4 py-3 space-y-2">
+                {NAV.map((n) => (
+                  <a key={n.id} href={`#${n.id}`} className="block py-2 text-sm" onClick={() => setOpen(false)}>
+                    {n.label}
+                  </a>
+                ))}
+                <div className="flex items-center justify-between pt-2">
+                  <div className="flex items-center gap-2 text-xs">
+                    <span>Dark</span>
+                    <Switch checked={enabled} onCheckedChange={setEnabled} />
+                  </div>
+                  <Button onClick={onContactClick} className="rounded-2xl">
+                    Book a Call <Calendar className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </Glass>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
+function Hero({ onPrimary }) {
+  return (
+    <Section id="home" className="pt-36 md:pt-40 bg-gradient-to-b from-white to-transparent dark:from-slate-950 dark:to-transparent">
+      <div className="grid lg:grid-cols-12 gap-10 items-center">
+        <div className="lg:col-span-6 space-y-6">
+          <Badge variant="secondary" className="rounded-full px-3 py-1 w-fit">
+            <Stars className="mr-2 h-4 w-4" /> Premium AI Delivery
+          </Badge>
+          <h1 className="text-4xl md:text-6xl font-semibold tracking-tight">
+            Build <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-rose-500">revenue‑driving</span> AI products with enterprise polish
+          </h1>
+          <p className="text-lg opacity-80 max-w-2xl">
+            We design, ship, and scale AI Systems, full‑stack apps, chatbots, voice assistants, and workflow automations — secured, observable, and measured against business KPIs.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button size="lg" className="rounded-2xl" onClick={onPrimary}>
+              Book a Call <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+            <Button size="lg" variant="outline" className="rounded-2xl" asChild>
+              <a href="#case-studies">See Case Studies</a>
+            </Button>
+          </div>
+          <div className="grid grid-cols-4 gap-4 pt-6">
+            {METRICS.map((m) => (
+              <Glass key={m.label} className="py-4">
+                <Stat kpi={m.kpi} label={m.label} />
+              </Glass>
+            ))}
+          </div>
+        </div>
+        <div className="lg:col-span-6">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <Glass className="p-4 md:p-6">
+              <div className="aspect-video rounded-xl bg-gradient-to-br from-indigo-500/20 via-fuchsia-500/20 to-rose-500/20 flex items-center justify-center">
+                <div className="text-center px-6">
+                  <p className="text-sm opacity-80">Demo Reel Placeholder</p>
+                  <p className="text-xs opacity-60">Replace with product montage / Lottie</p>
+                </div>
+              </div>
+            </Glass>
+          </motion.div>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+function Solutions() {
+  return (
+    <Section id="solutions">
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Solutions</h2>
+        <Badge className="rounded-full">Model‑agnostic · Cloud‑agnostic</Badge>
+      </div>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {SERVICES.map((s) => (
+          <motion.div key={s.title} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4 }}>
+            <Card className="rounded-2xl border-white/40 dark:border-white/10">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <s.icon className="h-5 w-5" /> {s.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="opacity-80 text-sm">{s.desc}</p>
+                <ul className="space-y-2 text-sm">
+                  {s.points.map((p) => (
+                    <li key={p} className="flex items-center gap-2 opacity-80"><Check className="h-4 w-4" /> {p}</li>
+                  ))}
+                </ul>
+                <Button variant="outline" className="w-full rounded-xl mt-2" asChild>
+                  <a href="#contact">Scope my project</a>
+                </Button>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+function CaseStudies() {
+  return (
+    <Section id="case-studies" className="bg-gradient-to-b from-transparent to-black/[0.02] dark:to-white/[0.03]">
+      <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-8">Case Studies</h2>
+      <Tabs defaultValue="all" className="w-full">
+        <TabsList className="rounded-2xl">
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="support">Support</TabsTrigger>
+          <TabsTrigger value="voice">Voice</TabsTrigger>
+          <TabsTrigger value="sales">Sales</TabsTrigger>
+        </TabsList>
+        <TabsContent value="all" className="mt-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {CASES.map((c) => (
+              <Card key={c.title} className="rounded-2xl">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary" className="rounded-full">{c.industry}</Badge>
+                    <a href="#" className="text-xs inline-flex items-center gap-1 opacity-80 hover:opacity-100">
+                      Read <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  </div>
+                  <CardTitle className="mt-3">{c.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="aspect-video rounded-xl bg-gradient-to-br from-indigo-500/15 to-rose-500/15" />
+                  <div className="flex flex-wrap gap-2">
+                    {c.stack.map((t) => (
+                      <Badge key={t} variant="outline" className="rounded-full">{t}</Badge>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-6">
+                    {c.impact.map((m) => (
+                      <div key={m} className="text-sm"><span className="font-medium">{m.split(" ")[0]}</span> <span className="opacity-70">{m.split(" ").slice(1).join(" ")}</span></div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </Section>
+  );
+}
+
+function Process() {
+  const steps = [
+    { title: "Discover", desc: "Workshops, success criteria, data audit, risk register." },
+    { title: "Design", desc: "User journeys, UX flows, guardrails, acceptance tests." },
+    { title: "Build", desc: "Incremental delivery, evals, red-teaming, CI/CD." },
+    { title: "Integrate", desc: "SSO/SIEM, observability, change management." },
+    { title: "Scale", desc: "SLAs, cost controls, model refresh, roadmap." },
+  ];
+  return (
+    <Section id="process">
+      <h2 className="text-3xl md:text-4xl font-semibold tracking-tight mb-10">Process</h2>
+      <div className="grid lg:grid-cols-5 gap-6">
+        {steps.map((s, idx) => (
+          <motion.div key={s.title} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.05 }}>
+            <Glass className="p-5 h-full">
+              <div className="text-4xl font-semibold mb-3">{idx + 1}</div>
+              <div className="font-medium">{s.title}</div>
+              <div className="text-sm opacity-80 mt-2">{s.desc}</div>
+            </Glass>
+          </motion.div>
+        ))}
+      </div>
+      <div className="flex items-center gap-3 mt-8">
+        <Shield className="h-5 w-5" />
+        <p className="text-sm opacity-80">Security first: PII minimization, encryption, least‑privilege, audit logs, optional on‑prem vectors.</p>
+      </div>
+    </Section>
+  );
+}
+
+function Pricing() {
+  return (
+    <Section id="pricing" className="bg-gradient-to-b from-transparent to-black/[0.02] dark:to-white/[0.03]">
+      <div className="flex items-end justify-between mb-8">
+        <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Pricing</h2>
+        <div className="text-sm opacity-70">Transparent bands · Fixed outcomes</div>
+      </div>
+      <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-6">
+        {PACKAGES.map((p) => (
+          <Card key={p.name} className={`rounded-2xl ${p.featured ? "ring-2 ring-indigo-500/60" : ""}`}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>{p.name}</CardTitle>
+                {p.featured && <Badge className="rounded-full">Most Popular</Badge>}
+              </div>
+              <div className="text-3xl font-semibold mt-2">{p.price}</div>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm">
+                {p.bullets.map((b) => (
+                  <li key={b} className="flex items-center gap-2"><Check className="h-4 w-4" /> {b}</li>
+                ))}
+              </ul>
+              <Button className="w-full mt-6 rounded-xl">{p.cta}</Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <div className="mt-8 grid md:grid-cols-2 gap-6">
+        <Accordion type="single" collapsible className="w-full">
+          {FAQ.map((f, i) => (
+            <AccordionItem key={f.q} value={`item-${i}`}>
+              <AccordionTrigger>{f.q}</AccordionTrigger>
+              <AccordionContent className="opacity-80 text-sm">{f.a}</AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+        <Glass className="p-6">
+          <div className="flex items-center gap-3">
+            <LineChart className="h-5 w-5" />
+            <div className="font-medium">ROI Guarantee</div>
+          </div>
+          <p className="text-sm opacity-80 mt-2">We define baselines and targets up‑front. If goals aren’t met, we iterate at our cost or refund the delta. Details in MSA.</p>
+        </Glass>
+      </div>
+    </Section>
+  );
+}
+
+function Insights() {
+  return (
+    <Section id="insights">
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Insights</h2>
+        <Button variant="outline" className="rounded-xl" asChild>
+          <a href="#">All Posts</a>
+        </Button>
+      </div>
+      <div className="grid md:grid-cols-3 gap-6">
+        {BLOG.map((p) => (
+          <Card key={p.title} className="rounded-2xl">
+            <CardHeader>
+              <Badge variant="secondary" className="w-fit rounded-full">{p.tag}</Badge>
+              <CardTitle className="mt-3 leading-tight">{p.title}</CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-center justify-between">
+              <div className="text-sm opacity-70">{p.time} read</div>
+              <Button size="sm" variant="ghost" className="rounded-xl" asChild>
+                <a href={p.href}>
+                  Read <ChevronRight className="ml-1 h-4 w-4" />
+                </a>
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
+function About() {
+  return (
+    <Section id="about" className="bg-gradient-to-b from-transparent to-black/[0.02] dark:to-white/[0.03]">
+      <div className="grid lg:grid-cols-12 gap-10 items-start">
+        <div className="lg:col-span-7 space-y-6">
+          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">About NovaMind AI</h2>
+          <p className="opacity-80">
+            We’re a senior team of product engineers, data scientists, and designers who’ve built at scale for fintech, SaaS, and enterprise. We ship fast, measure outcomes, and design for durability.
+          </p>
+          <div className="grid sm:grid-cols-3 gap-4">
+            <Glass className="p-5"><div className="text-3xl font-semibold">50+</div><div className="text-sm opacity-70">AI launches</div></Glass>
+            <Glass className="p-5"><div className="text-3xl font-semibold">$120M</div><div className="text-sm opacity-70">Client value created</div></Glass>
+            <Glass className="p-5"><div className="text-3xl font-semibold">12</div><div className="text-sm opacity-70">Industries served</div></Glass>
+          </div>
+        </div>
+        <div className="lg:col-span-5 space-y-4">
+          <Glass className="p-6">
+            <div className="font-medium mb-2">Our Stack</div>
+            <div className="flex flex-wrap gap-2 text-xs">
+              {["OpenAI","Azure","Anthropic","AWS","GCP","LangChain","LlamaIndex","Next.js","Vercel","Pinecone","Weaviate","Postgres","Snowflake","Kafka"].map(x => (
+                <Badge key={x} variant="outline" className="rounded-full">{x}</Badge>
+              ))}
+            </div>
+          </Glass>
+          <Glass className="p-6">
+            <div className="font-medium mb-2">Compliance</div>
+            <p className="text-sm opacity-80">SOC2‑ready practices, ISO27001 mindset, DPA/BAA support, data residency options, configurable retention, audit logs, SSO/SAML.</p>
+          </Glass>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+function Contact({ onSubmitted }) {
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+  async function submit(e) {
+    e.preventDefault();
+    setSubmitting(true);
+    await new Promise((r) => setTimeout(r, 800));
+    setSubmitting(false);
+    setDone(true);
+    onSubmitted?.();
+  }
+  return (
+    <Section id="contact">
+      <div className="grid lg:grid-cols-12 gap-10 items-start">
+        <div className="lg:col-span-5 space-y-6">
+          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Let’s scope your project</h2>
+          <p className="opacity-80">Tell us about your goals, timeline, and tech stack. We’ll propose a path to measurable outcomes.</p>
+          <div className="space-y-3 text-sm">
+            <div className="flex items-center gap-2"><Mail className="h-4 w-4" /> hello@novamind.ai</div>
+            <div className="flex items-center gap-2"><Phone className="h-4 w-4" /> +1 (555) 012‑3456</div>
+            <div className="flex items-center gap-2"><Calendar className="h-4 w-4" /> Mon–Fri, 9:00–18:00</div>
+          </div>
+        </div>
+        <div className="lg:col-span-7">
+          <Glass className="p-6">
+            {!done ? (
+              <form onSubmit={submit} className="grid gap-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm">Name</label>
+                    <Input required placeholder="Your full name" />
+                  </div>
+                  <div>
+                    <label className="text-sm">Email</label>
+                    <Input type="email" required placeholder="you@company.com" />
+                  </div>
+                </div>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm">Company</label>
+                    <Input placeholder="Acme Inc." />
+                  </div>
+                  <div>
+                    <label className="text-sm">Budget</label>
+                    <Input placeholder="$25k–$150k" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm">Goals</label>
+                  <Textarea placeholder="What outcomes are you targeting?" rows={4} />
+                </div>
+                <div>
+                  <label className="text-sm">Stack & Data Sources</label>
+                  <Input placeholder="AWS, Postgres, Salesforce, Notion…" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="text-xs opacity-70">By submitting, you agree to our terms & privacy.</div>
+                  <Button type="submit" className="rounded-2xl" disabled={submitting}>
+                    {submitting ? "Sending…" : (<>Send <Send className="ml-2 h-4 w-4" /></>)}
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <div className="text-center py-12">
+                <div className="mx-auto h-12 w-12 rounded-full bg-green-500/15 flex items-center justify-center">
+                  <Check className="h-6 w-6" />
+                </div>
+                <h3 className="text-xl font-medium mt-4">Thanks! We’ll get back within 1 business day.</h3>
+              </div>
+            )}
+          </Glass>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+function Footer() {
+  const year = new Date().getFullYear();
+  return (
+    <footer className="py-12 border-t border-white/40 dark:border-white/10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-4 gap-8">
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-rose-500" />
+            <div className="font-semibold">NovaMind AI</div>
+          </div>
+          <p className="text-sm opacity-80 mt-3">Designing and shipping AI that moves the needle.</p>
+        </div>
+        <div>
+          <div className="font-medium mb-3">Company</div>
+          <ul className="space-y-2 text-sm opacity-80">
+            <li><a href="#about">About</a></li>
+            <li><a href="#insights">Insights</a></li>
+            <li><a href="#process">Process</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+          </ul>
+        </div>
+        <div>
+          <div className="font-medium mb-3">Solutions</div>
+          <ul className="space-y-2 text-sm opacity-80">
+            {SERVICES.map(s => (<li key={s.title}><a href="#solutions">{s.title}</a></li>))}
+          </ul>
+        </div>
+        <div>
+          <div className="font-medium mb-3">Legal</div>
+          <ul className="space-y-2 text-sm opacity-80">
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Data Processing Addendum</a></li>
+          </ul>
+        </div>
+      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 text-xs opacity-60">© {year} NovaMind AI. All rights reserved.</div>
+    </footer>
+  );
+}
+
+export default function AIAgencyPremiumSite() {
+  const contactRef = useRef(null);
+  const scrollToContact = () => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
+
+  return (
+    <div className="min-h-screen bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100 selection:bg-indigo-500/20">
+      {/* Decorative background gradients */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
+        <div className="absolute -top-24 -right-24 h-80 w-80 rounded-full bg-rose-500/20 blur-3xl" />
+        <div className="absolute top-64 -left-24 h-96 w-96 rounded-full bg-indigo-500/20 blur-3xl" />
+      </div>
+
+      <Header onContactClick={scrollToContact} />
+      <main>
+        <Hero onPrimary={scrollToContact} />
+        <Solutions />
+        <CaseStudies />
+        <Process />
+        <Pricing />
+        <Insights />
+        <About />
+        <Contact onSubmitted={() => {}} />
+      </main>
+      <Footer />
+    </div>
+  );
+}
